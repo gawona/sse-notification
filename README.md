@@ -1,4 +1,4 @@
-### sse-notification 
+### 🔔 sse-notification
 
 SSE (Server-Sent Events) 를 사용하여 알림 구현하기 !!
 
