@@ -26,7 +26,7 @@ export const useNotificationStore = create<NotificationStore>((set) => ({
       notifications: [noti, ...state.notifications],
       indicator: true,
     }))
-    console.log("새 알림 저장 : ", noti)
+    // console.log("새 알림 저장 : ", noti)
   },
   markAsRead: (id) =>
     set((state) => ({

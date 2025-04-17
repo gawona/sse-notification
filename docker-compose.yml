@@ -10,6 +10,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=mysql
@@ -37,18 +39,27 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: gawon
-      MYSQL_USER: gawon
-      MYSQL_PASSWORD: gawon
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysql -ugawon -pgawon -e 'SELECT 1'"]
+      test: ["CMD-SHELL", "mysql -u${MYSQL_USER} -p${MYSQL_PASSWORD} -e 'SELECT 1'"]
       interval: 5s
       timeout: 5s
       retries: 10
+  
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: always
 
 volumes:
   mysql-data:
-
+  redis-data:

@@ -46,7 +46,6 @@ function App() {
       };
 
       addNotification(newNotification);
-      setIndicator(true);
     };
 
     eventSource.onerror = (error: any) => {

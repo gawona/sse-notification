@@ -8,8 +8,11 @@ import com.notification.backend.domain.user.entity.Role;
 import com.notification.backend.domain.user.entity.User;
 import com.notification.backend.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public void signup(SignupRequestDto dto) {
         if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
@@ -41,8 +45,17 @@ public class UserService {
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
         }
 
-        String token = jwtTokenProvider.createToken(user.getUsername(), user.getRole().name());
+        String accessToken = jwtTokenProvider.createToken(user.getUsername(), user.getRole().name());
+        String refreshToken = jwtTokenProvider.createRefreshToken();
 
-        return new LoginResponseDto(user.getUsername(), user.getRole().name(), token);
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+
+        return new LoginResponseDto(user.getUsername(), user.getRole().name(), accessToken, refreshToken);
+    }
+
+    public void logout(String accessToken) {
+        long expiration = jwtTokenProvider.getExpiration(accessToken);
+        redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
     }
 }
